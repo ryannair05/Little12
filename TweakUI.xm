@@ -5,7 +5,7 @@
 
 NSInteger statusBarStyle, keyboardSpacing;
 BOOL enabled, wantsKeyboardDock,wants11Camera, wantsbottomInset;
-BOOL disableGestures = NO, wantsGesturesDisabledWhenKeyboard;
+BOOL disableGestures = NO, wantsGesturesDisabledWhenKeyboard, wantsiPadMultitasking;
 BOOL wantsDeviceSpoofing, wantsCompatabilityMode;
 
 %group ForceDefaultKeyboard
@@ -93,6 +93,16 @@ BOOL wantsDeviceSpoofing, wantsCompatabilityMode;
 - (void)grabberTongueBeganPulling:(id)arg1 withDistance:(double)arg2 andVelocity:(double)arg3 andGesture:(id)arg4  {
     if (!disableGestures)
         %orig;
+}
+%end
+%end
+
+%group UIKitiPadMultitasking
+%hook UITraitCollection
++(UITraitCollection *)traitCollectionWithHorizontalSizeClass:(UIUserInterfaceSizeClass)arg1 {
+    if(UIDeviceOrientationIsLandscape([UIDevice currentDevice].orientation))
+        return %orig(2);
+    return %orig;
 }
 %end
 %end
@@ -217,6 +227,7 @@ void loadPrefs() {
             wantsGesturesDisabledWhenKeyboard = [[prefs objectForKey:@"noGesturesForKeyboard"] boolValue];
             wants11Camera = [[prefs objectForKey:@"11Camera"] boolValue];
             keyboardSpacing = [[prefs objectForKey:@"keyboardSpacing"]?:@45 integerValue];
+            wantsiPadMultitasking = [[prefs objectForKey:@"iPadDock"] boolValue] ? [[prefs objectForKey:@"iPadMultitasking"] boolValue] : NO;
             
             NSString const *mainIdentifier = [NSBundle mainBundle].bundleIdentifier;
             NSDictionary const *appSettings = [prefs objectForKey:mainIdentifier];
@@ -245,6 +256,8 @@ void loadPrefs() {
         if (enabled) {
 
             bool const isApp = [[[[NSProcessInfo processInfo] arguments] objectAtIndex:0] containsString:@"/Application"];
+
+            if (wantsiPadMultitasking) %init(UIKitiPadMultitasking);
 
             if (isApp) {
 

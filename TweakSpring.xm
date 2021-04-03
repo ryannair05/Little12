@@ -6,23 +6,13 @@ BOOL enabled, wantsHomeBarSB, wantsHomeBarLS, wantsReduceRows, wantsRoundedCorne
 BOOL wantsCCGrabber, wantsProudLock, wantsHideSBCC,wantsLSShortcuts, wantsBatteryPercent, wantsiPadDock;
 BOOL wantsiPadMultitasking, wantsRecentApps, wantsiPadAppSwitcher, wantsDockInApps, wantsDockInSwitcher;
 
-%hook BSPlatform
-- (NSInteger)homeButtonType {
-    return 2;
-}
-%end
+@interface UIScreen (Private)
+@property (atomic, assign, readonly) NSUInteger screenSizeCategory;
+@end
 
 %hook SBHDefaultIconListLayoutProvider
 -(NSUInteger)screenType {
-    CGFloat const screenHeight = UIScreen.mainScreen.bounds.size.height;
-    if (screenHeight == 568) {
-        return 0;
-    } else if (screenHeight == 667) {
-        return 1;
-    } else if (screenHeight == 736) {
-        return 2;
-    }
-    return %orig;
+    return UIScreen.mainScreen.screenSizeCategory - 1;
 }
 %end
 
@@ -239,6 +229,14 @@ BOOL wantsiPadMultitasking, wantsRecentApps, wantsiPadAppSwitcher, wantsDockInAp
         self.controlCenterGrabberView.frame = CGRectMake(0,0,60.5,2.5);
         self.controlCenterGlyphView.frame = CGRectMake(320,35,16.6,19.3);
     }
+}
+%end
+%end
+
+%group removeBreadcrumbs
+%hook _UIStatusBarData
+-(void)setBackNavigationEntry:(id)arg1 {
+    return;
 }
 %end
 %end
@@ -497,6 +495,7 @@ void loadPrefs() {
             wantsiPadAppSwitcher = [[prefs objectForKey:@"iPadSwitcher"] boolValue];
             wantsHideSBCC = [[prefs objectForKey:@"HideSBCC"] boolValue];
             wantsLSShortcuts = [[prefs objectForKey:@"lsShortcutsEnabled"] boolValue];
+            noBreadCrumbs = [[prefs objectForKey:@"noBreadCrumbs"] boolValue];
         }
         else {
             NSString *pathDefault = @"/Library/PreferenceBundles/little12prefs.bundle/defaults.plist";
@@ -557,6 +556,7 @@ void loadPrefs() {
             if (wantsProudLock) %init(ProudLock);
             if (wantsiPadAppSwitcher) %init(iPadAppSwitcher)
             if (!wantsDockInApps) %init(noDockInApps);
+            if (noBreadCrumbs) %init(removeBreadcrumbs)
 
             %init;
         }
