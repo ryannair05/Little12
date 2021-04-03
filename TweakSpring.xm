@@ -6,6 +6,12 @@ BOOL enabled, wantsHomeBarSB, wantsHomeBarLS, wantsReduceRows, wantsRoundedCorne
 BOOL wantsCCGrabber, wantsProudLock, wantsHideSBCC,wantsLSShortcuts, wantsBatteryPercent, wantsiPadDock;
 BOOL wantsiPadMultitasking, wantsRecentApps, wantsiPadAppSwitcher, wantsDockInApps, wantsDockInSwitcher;
 
+%hook BSPlatform
+- (NSInteger)homeButtonType {
+    return 2;
+}
+%end
+
 @interface UIScreen (Private)
 @property (atomic, assign, readonly) NSUInteger screenSizeCategory;
 @end
