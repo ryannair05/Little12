@@ -461,6 +461,13 @@ CGFloat offset = 0;
 %end
 
 %hook SBMainWorkspace
++(id)_sharedInstanceWithNilCheckPolicy:(long long)arg1 {
+    @try {
+        return %orig(arg1);
+    } @catch (NSException *e) {
+        return nil;
+    }
+}
 -(BOOL)isMedusaEnabled {
 	return YES;
 }
